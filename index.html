@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prince of Persia Style Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+        }
+        
+        #gameContainer {
+            position: relative;
+            border: 2px solid #5d4037;
+        }
+        
+        #gameCanvas {
+            display: block;
+            background-color: #8b4513;
+        }
+        
+        #uiOverlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 16px;
+            text-shadow: 2px 2px 0 #000;
+            z-index: 10;
+        }
+        
+        #menuScreen, #pauseScreen, #gameOverScreen, #levelCompleteScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            font-size: 24px;
+            z-index: 20;
+        }
+        
+        .screenButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #8b4513;
+            color: white;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        
+        .screenButton:hover {
+            background-color: #a0522d;
+        }
+        
+        #levelCompleteScreen, #gameOverScreen {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div id="uiOverlay">
+            <div>Health: <span id="healthDisplay">100</span></div>
+            <div>Score: <span id="scoreDisplay">0</span></div>
+            <div>Time: <span id="timeDisplay">0</span>s</div>
+            <div>Level: <span id="levelDisplay">1</span></div>
+        </div>
+        
+        <div id="menuScreen">
+            <h1>Prince of Persia</h1>
+            <p>Arrow Keys: Move | SPACE: Jump | Z: Attack</p>
+            <button class="screenButton" onclick="startGame()">Start Game</button>
+        </div>
+        
+        <div id="pauseScreen" style="display:none;">
+            <h1>PAUSED</h1>
+            <button class="screenButton" onclick="resumeGame()">Resume</button>
+            <button class="screenButton" onclick="restartLevel()">Restart Level</button>
+            <button class="screenButton" onclick="showMenu()">Main Menu</button>
+        </div>
+        
+        <div id="gameOverScreen">
+            <h1>GAME OVER</h1>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <button class="screenButton" onclick="restartGame()">Try Again</button>
+            <button class="screenButton" onclick="showMenu()">Main Menu</button>
+        </div>
+        
+        <div id="levelCompleteScreen">
+            <h1>LEVEL COMPLETE!</h1>
+            <p>Score: <span id="levelScore">0</span></p>
+            <button class="screenButton" onclick="nextLevel()">Next Level</button>
+            <button class="screenButton" onclick="showMenu()">Main Menu</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
