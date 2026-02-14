@@ -53,6 +53,7 @@ const player = {
 
 // Game objects
 let platforms = [];
+let ladders = [];
 let enemies = [];
 let traps = [];
 let particles = [];
@@ -60,6 +61,7 @@ let levelExit = { x: 0, y: 0, width: 40, height: 40 };
 
 // Input handling
 const keys = {};
+let autoPlayMode = false;
 
 window.addEventListener('keydown', (e) => {
     keys[e.key] = true;
@@ -67,6 +69,11 @@ window.addEventListener('keydown', (e) => {
     // Pause game
     if (e.key === 'Escape' && gameState.current === 'PLAYING') {
         pauseGame();
+    }
+    
+    // Toggle auto play mode
+    if (e.key === 'a' || e.key === 'A') {
+        autoPlayMode = !autoPlayMode;
     }
     
     // Attack
@@ -465,6 +472,105 @@ function checkCollision(rect1, rect2) {
            rect1.x + rect1.width > rect2.x &&
            rect1.y < rect2.y + rect2.height &&
            rect1.y + rect1.height > rect2.y;
+}
+
+// Auto-play navigation function
+function autoNavigate() {
+    // Simple AI to navigate the level
+    // This is a basic implementation - could be improved with pathfinding algorithms
+    
+    // Calculate direction to exit
+    const exitDirection = levelExit.x > player.x ? 1 : -1;
+    
+    // Check if we need to jump over obstacles or gaps
+    let needsToJump = false;
+    let needsToMove = true;
+    
+    // Look ahead to see if there's a gap
+    const lookAheadDistance = player.width + 20;
+    const testPoint = {
+        x: player.x + lookAheadDistance * exitDirection,
+        y: player.y + player.height + 10, // slightly below player feet
+        width: 10,
+        height: 10
+    };
+    
+    // Check if there's ground ahead
+    let groundAhead = false;
+    for (let platform of platforms) {
+        if (checkCollision(testPoint, platform)) {
+            groundAhead = true;
+            break;
+        }
+    }
+    
+    // If no ground ahead and we're not already jumping, we need to jump over the gap
+    if (!groundAhead && !player.isJumping) {
+        needsToJump = true;
+    }
+    
+    // Check if there's an obstacle (like a wall) that requires jumping
+    const obstacleCheck = {
+        x: player.x + (exitDirection > 0 ? player.width : -10),
+        y: player.y,
+        width: 10,
+        height: player.height
+    };
+    
+    for (let platform of platforms) {
+        if (checkCollision(obstacleCheck, platform)) {
+            // There's a platform/wall in front, check if we can go under it or need to jump over
+            if (platform.y < player.y + player.height) {
+                needsToJump = true;
+            }
+        }
+    }
+    
+    // Check for ladders near the player when needed
+    for (let ladder of ladders) {
+        if (Math.abs(player.x - ladder.x) < 50 && Math.abs(player.y - ladder.y) < 100) {
+            // If player is near a ladder and needs to go up/down
+            if (levelExit.y < player.y - 50) {
+                // Need to climb up
+                player.velocityY = -player.speed;
+                player.velocityX = 0;
+                return; // Skip other movement controls
+            } else if (levelExit.y > player.y + 50) {
+                // Need to climb down
+                player.velocityY = player.speed;
+                player.velocityX = 0;
+                return; // Skip other movement controls
+            }
+        }
+    }
+    
+    // Check for enemies that need to be attacked
+    for (let enemy of enemies) {
+        const distToEnemy = Math.abs(player.x - enemy.x);
+        if (distToEnemy < 50 && Math.abs(player.y - enemy.y) < 30) {
+            // If enemy is above, attack it
+            if (enemy.y < player.y && enemy.y > player.y - 40) {
+                player.isAttacking = true;
+                player.attackTimer = 10;
+            }
+            // If enemy is at same level, try to avoid or jump over
+            else if (Math.abs(player.y - enemy.y) < 20) {
+                // Jump over enemy if possible
+                needsToJump = true;
+            }
+        }
+    }
+    
+    // Set movement based on calculated needs
+    player.velocityX = exitDirection * player.speed;
+    player.facingRight = exitDirection > 0;
+    
+    if (needsToJump) {
+        if (!player.isJumping) {
+            player.velocityY = -player.jumpPower;
+            player.isJumping = true;
+        }
+    }
 }
 
 function createParticles(x, y, count, color) {
